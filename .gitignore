@@ -1,0 +1,6 @@
+venv/
+doc/_build/
+pylibad4/libad4.dll
+*.pyc
+*.sublime-project
+*.sublime-workspace
