@@ -1,0 +1,2 @@
+include versioneer.py
+include pylibad4/_version.py

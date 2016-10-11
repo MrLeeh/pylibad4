@@ -3,7 +3,6 @@
 :author: Stefan Lehmann
 :email: stefan.st.lehmann@gmail.com
 :created: 2016-10-10
-:last modified: 2016-10-10 by {{ last_modified_by }}
 
 """
 import os
@@ -62,12 +61,32 @@ def ad_open(name):
     ad_open = libad4_dll.ad_open
     ad_open.argtypes = [c_char_p]
     ad_open.restype = c_int32
+
     handle = ad_open(bytes(name, encoding))
 
     if handle == -1:
         raise IOError('Could not connect to device {}'.format(name))
 
     return handle
+
+
+def ad_close(handle):
+    """
+    Close the connection to a measurement system.
+
+    :param int handle: device-handle
+    :raises IOError: if an error occured during disconnecting device,
+                     contains the error number
+    """
+    ad_close = libad4_dll.ad_close
+    ad_close.argtypes = [c_int32]
+    ad_close.restype = c_int32
+
+    res = ad_close(handle)
+
+    if res:
+        raise IOError(
+            'Error while disconnecting device (error number {})'.format(res))
 
 
 if __name__ == '__main__':

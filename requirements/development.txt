@@ -1,2 +1,5 @@
+coverage
 ptpython
+pytest
 sphinx
+versioneer

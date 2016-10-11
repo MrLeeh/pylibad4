@@ -4,3 +4,6 @@ pylibad4/libad4.dll
 *.pyc
 *.sublime-project
 *.sublime-workspace
+.tox/
+pylibad4.egg-info/
+.cache/
