@@ -7,3 +7,5 @@ pylibad4/libad4.dll
 .tox/
 pylibad4.egg-info/
 .cache/
+.coverage
+htmlcov/

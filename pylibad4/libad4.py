@@ -7,7 +7,8 @@
 """
 import os
 import sys
-from ctypes import CDLL, c_char_p, c_int32
+from ctypes import CDLL, c_char_p, c_int32, byref, pointer
+from .types import SADRangeInfo
 
 LIB_NAME = 'libad4.dll'
 
@@ -89,5 +90,60 @@ def ad_close(handle):
             'Error while disconnecting device (error number {})'.format(res))
 
 
+def ad_get_range_count(handle, channel):
+    """
+    Return the count of the measurement ranges of a channel.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :rtype: int
+    :return: count of measurement ranges
+
+    """
+    ad_get_range_count = libad4_dll.ad_get_range_count
+    ad_get_range_count.argtypes = [c_int32, c_int32]
+    ad_get_range_count.restype = c_int32
+    count = c_int32()
+
+    return_code = ad_get_range_count(handle, channel, byref(count))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_get_range_count({handle}, {channel}), '
+            'returncode: {return_code}'.format(handle=handle, channel=channel,
+                                               return_code=return_code)
+        )
+    return count.value
+
+
+def ad_get_range_info(handle, channel, range_):
+    """
+    Get range information
+    """
+    ad_get_range_info = libad4_dll.ad_get_range_info
+    ad_get_range_info.argtypes = [c_int32, c_int32, c_int32]
+    ad_get_range_info.restype = c_int32
+    st_ad_range_info = SADRangeInfo()
+
+    return_code = ad_get_range_info(handle, channel, range_,
+                                    pointer(st_ad_range_info))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_get_range_info({handle}, {channel}, {range_}), '
+            'returncode: {return_code}'.format(
+                handle=handle, channel=channel, range_=range_,
+                return_code=return_code
+            )
+        )
+
+    return st_ad_range_info
+
+
 if __name__ == '__main__':
-    ad_open('memadfpusb')
+    from .types import AD_CHA_TYPE_ANALOG_IN
+    handle = ad_open('memadfpusb')
+    print(ad_get_range_count(handle, AD_CHA_TYPE_ANALOG_IN))
+    range_info = ad_get_range_info(handle, AD_CHA_TYPE_ANALOG_IN, 0)
+    print(range_info.min, range_info.max, range_info.res, range_info.bps, range_info.unit)
+    ad_close(handle)
