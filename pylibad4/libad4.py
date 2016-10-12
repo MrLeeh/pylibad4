@@ -7,7 +7,7 @@
 """
 import os
 import sys
-from ctypes import CDLL, c_char_p, c_int32, byref, pointer
+from ctypes import CDLL, c_char_p, c_int32, c_uint32, byref, pointer, c_float
 from .types import SADRangeInfo
 
 LIB_NAME = 'libad4.dll'
@@ -118,7 +118,13 @@ def ad_get_range_count(handle, channel):
 
 def ad_get_range_info(handle, channel, range_):
     """
-    Get range information
+    Get information about the range of a channel.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :rtype: SADRangeInfo
+    :return: range information object
+
     """
     ad_get_range_info = libad4_dll.ad_get_range_info
     ad_get_range_info.argtypes = [c_int32, c_int32, c_int32]
@@ -126,7 +132,7 @@ def ad_get_range_info(handle, channel, range_):
     st_ad_range_info = SADRangeInfo()
 
     return_code = ad_get_range_info(handle, channel, range_,
-                                    pointer(st_ad_range_info))
+                                    byref(st_ad_range_info))
 
     if return_code:
         raise LibAD4Error(
@@ -140,10 +146,73 @@ def ad_get_range_info(handle, channel, range_):
     return st_ad_range_info
 
 
+def ad_discrete_in(handle, channel, range_):
+    """
+    Read a single value of a given channel.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :rtype: int
+
+    """
+    ad_discrete_in = libad4_dll.ad_discrete_in
+    ad_discrete_in.argtypes = [c_int32, c_int32, c_int32]
+    ad_discrete_in.restype = c_int32
+    value = c_uint32()
+
+    return_code = ad_discrete_in(handle, channel, range_, byref(value))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_discrete_in({handle}, {channel}, {range_}), '
+            'returncode: {return_code}'.format(
+                handle=handle, channel=channel, range_=range_,
+                return_code=return_code
+            )
+        )
+
+    return value.value
+
+
+def ad_sample_to_float(handle, channel, range_, data):
+    """
+    Convert a measurement value in the corresponding voltage value.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :rtype: float
+
+    """
+    ad_sample_to_float = libad4_dll.ad_sample_to_float
+    ad_sample_to_float.argtypes = [c_int32, c_int32, c_int32, c_uint32]
+    ad_sample_to_float.restype = c_int32
+    value = c_float()
+
+    return_code = ad_sample_to_float(
+        handle, channel, range_, data, byref(value))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_sample_to_float('
+            '{handle}, {channel}, {range_}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                return_code=return_code
+            )
+        )
+
+    return value.value
+
+
 if __name__ == '__main__':
     from .types import AD_CHA_TYPE_ANALOG_IN
+    channel = AD_CHA_TYPE_ANALOG_IN | 0x0001
+    range_ = 0
+
     handle = ad_open('memadfpusb')
-    print(ad_get_range_count(handle, AD_CHA_TYPE_ANALOG_IN))
-    range_info = ad_get_range_info(handle, AD_CHA_TYPE_ANALOG_IN, 0)
-    print(range_info.min, range_info.max, range_info.res, range_info.bps, range_info.unit)
+    data = ad_discrete_in(handle, channel, range_)
+    value = ad_sample_to_float(handle, channel, range_, data)
+    print(value)
     ad_close(handle)

@@ -5,7 +5,8 @@
 :created: 2016-10-11
 
 """
-from ctypes import Structure, c_double, c_int, c_char
+
+from ctypes import Structure, c_double, c_char, c_int
 
 
 """
