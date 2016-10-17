@@ -102,6 +102,8 @@ def ad_get_range_count(handle, channel):
     :param int channel: channel number
     :rtype: int
     :return: count of measurement ranges
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
 
     """
     ad_get_range_count = libad4_dll.ad_get_range_count
@@ -130,6 +132,8 @@ def ad_get_range_info(handle, channel, range_):
     :param int channel: channel number
     :rtype: SADRangeInfo
     :return: range information object
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
 
     """
     ad_get_range_info = libad4_dll.ad_get_range_info
@@ -161,6 +165,8 @@ def ad_discrete_in(handle, channel, range_):
     :param int channel: channel number
     :param int range_: range number
     :rtype: int
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
 
     """
     ad_discrete_in = libad4_dll.ad_discrete_in
@@ -190,6 +196,8 @@ def ad_discrete_in64(handle, channel, range_):
     :param int channel: channel number
     :param int range_: range number
     :rtype: int
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
 
     """
     ad_discrete_in64 = libad4_dll.ad_discrete_in64
@@ -213,6 +221,8 @@ def ad_discrete_in64(handle, channel, range_):
 
 def ad_discrete_inv(handle, channel_list, range_list):
     """
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
 
     """
     ad_discrete_inv = libad4_dll.ad_discrete_inv
@@ -247,6 +257,135 @@ def ad_discrete_inv(handle, channel_list, range_list):
         )
 
     return [x for x in data]
+
+
+def ad_discrete_out(handle, channel, range_, data):
+    """
+    Set an output to the given data value.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :param int data: data value
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
+
+    For analog outputs 0x00000000 stands for the lowest output voltage (e.g. 0V)
+    and 0x10000000 stands for the highest output voltage (e.g. 10V). As it is
+    32bit the maximum value of 0xffffffff must not be exceeded.
+
+    Use ad_float_to_sample() to translate a float value in a data value for
+    usage with ad_discrete_out. You can use the helper function ad_analog_out()
+    for direct usage with voltage values.
+
+    """
+    ad_discrete_out = libad4_dll.ad_discrete_out
+    ad_discrete_out.argtypes = [c_int32, c_int32, c_int32, c_uint32]
+    ad_discrete_out.restype = c_int32
+
+    return_code = ad_discrete_out(handle, channel, range_, data)
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_discrete_out('
+            '{handle}, {channel}, {range_}, {data}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                data=data, return_code=return_code
+            ), return_code
+        )
+
+
+def ad_discrete_out64(handle, channel, range_, data):
+    """
+    Set an output to the given data value. The full 64-bit resolution provided
+    by this function can only be used by special 64-bit measurement systems.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :param int data: data value
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
+
+    For analog outputs 0x0000000000000000 stands for the lowest output voltage
+    (e.g. 0V) and 0x1000000000000000 stands for the highest output voltage
+    (e.g. 10V). As it is 32bit the maximum value of 0xffffffffffffffff must
+    not be exceeded.
+
+    Use ad_float_to_sample64() to translate a float value in a data value for
+    usage with ad_discrete_out. You can use the helper function ad_analog_out()
+    for direct usage with voltage values.
+
+    """
+    ad_discrete_out = libad4_dll.ad_discrete_out
+    ad_discrete_out.argtypes = [c_int32, c_int32, c_uint64, c_uint64]
+    ad_discrete_out.restype = c_int32
+
+    return_code = ad_discrete_out(handle, channel, range_, data)
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_discrete_out64('
+            '{handle}, {channel}, {range_}, {data}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                data=data, return_code=return_code
+            ), return_code
+        )
+
+
+def ad_discrete_outv(handle, channel_list, range_list, data_list):
+    """
+    Set multiple outputs at once. Analog and digital outputs can be mixed.
+    Despite the channel numbers the ranges for each channel has to be given.
+    In contrast to ad_discrete_out() and ad_discrete_out64() the channel
+    numbers, ranges and data for ad_discrete_outv() are given as lists. All
+    lists need to have the same length.
+
+    The field data need to be set according to ad_discrete_out64.
+
+    :param int handle: device-handle
+    :param [int] channel_list: list of channels (analog and digital)
+    :param [int] range_list: list of the used range numbers
+    :param [int] data_list: list of data values to write to the outputs
+
+    :raises IOError: if an error occured, error_code contains the error number
+                     return by libad4.dll
+
+
+    """
+    ad_discrete_outv = libad4_dll.ad_discrete_outv
+
+    # Check for same length of channel_list and range_list
+    if len(channel_list) != len(range_list):
+        raise ValueError('range_list and channel_list need to have the same '
+                         'length')
+
+    # prepare the function parameters
+    count = len(channel_list)
+    int32_array = (c_int32 * count)
+    uint64_array = (c_uint64 * count)
+
+    ad_discrete_outv.argtypes = [c_int32, c_int32, int32_array, uint64_array,
+                                 uint64_array]
+    ad_discrete_outv.restype = c_int32
+
+    return_code = ad_discrete_outv(
+        handle, count, int32_array(*channel_list), uint64_array(*range_list),
+        uint64_array(*data_list)
+    )
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_discrete_outv('
+            '{handle}, {count}, {channel_list}, {range_list}, {data_list}), '
+            'returncode: {return_code}'.format(
+                handle=handle, count=count, channel_list=channel_list,
+                range_list=range_list, return_code=return_code,
+                data_list=data_list
+            ), return_code
+        )
 
 
 def ad_sample_to_float(handle, channel, range_, data):

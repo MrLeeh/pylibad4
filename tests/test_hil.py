@@ -12,8 +12,10 @@ import unittest
 from unittest import TestCase
 from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_get_range_info, ad_discrete_in, ad_discrete_inv, ad_sample_to_float, \
-    ad_discrete_in64, LibAD4Error
-from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6
+    ad_discrete_in64, ad_discrete_out, ad_discrete_out64, \
+    ad_discrete_outv, LibAD4Error
+from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
+    AD_CHA_TYPE_ANALOG_OUT
 
 
 TEST_DEVICE_NAME = 'memadfpusb'
@@ -109,6 +111,49 @@ class LibAD4TestCase(TestCase):
         ranges.append(0)
         with self.assertRaises(ValueError):
             data = ad_discrete_inv(self.handle, channels, ranges)
+
+    def test_discrete_out(self):
+        channel = AD_CHA_TYPE_ANALOG_OUT | 0x0001
+        range_ = 0
+        data = 0xffffffff
+
+        ad_discrete_out(self.handle, channel, range_, data)
+
+        # check for error
+        with self.assertRaises(LibAD4Error):
+            ad_discrete_out(INVALID_HANDLE, channel, range_, data)
+
+    def test_discrete_out64(self):
+        channel = AD_CHA_TYPE_ANALOG_OUT | 0x0001
+        range_ = 0
+        data = 0xffffffffffffffff
+
+        ad_discrete_out64(self.handle, channel, range_, data)
+
+        # check for error
+        with self.assertRaises(LibAD4Error):
+            ad_discrete_out64(INVALID_HANDLE, channel, range_, data)
+
+    def test_discrete_outv(self):
+        channels = [
+            AD_CHA_TYPE_ANALOG_OUT | 0x0001,
+            AD_CHA_TYPE_ANALOG_OUT | 0x0002,
+        ]
+        ranges = [0, 0]
+        data = [0xffffffffffffffff, 0xffffffffffffffff]
+
+        # check for error code with invalid handle
+        with self.assertRaises(LibAD4Error) as cm:
+            ad_discrete_outv(INVALID_HANDLE, channels, ranges, data)
+        self.assertEqual(cm.exception.error_code, AD_RETURN_CODE_6)
+
+        # check if returned value is integer
+        data = ad_discrete_outv(self.handle, channels, ranges, data)
+
+        # check for error if different array sizes
+        ranges.append(0)
+        with self.assertRaises(ValueError):
+            data = ad_discrete_outv(self.handle, channels, ranges, data)
 
 
 if __name__ == '__main__':
