@@ -15,7 +15,8 @@ from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_discrete_in64, ad_discrete_out, ad_discrete_out64, \
     ad_discrete_outv, ad_sample_to_float64, ad_float_to_sample, \
     ad_float_to_sample64, ad_analog_in, ad_analog_out, \
-    ad_digital_in, ad_digital_out, LibAD4Error
+    ad_digital_in, ad_digital_out, ad_set_digital_line, ad_get_digital_line, \
+    LibAD4Error
 from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
     AD_CHA_TYPE_ANALOG_OUT
 
@@ -219,6 +220,19 @@ class LibAD4TestCase(TestCase):
 
         with self.assertRaises(LibAD4Error):
             ad_digital_out(INVALID_HANDLE, 0, 0xf)
+
+    def test_set_digital_line(self):
+        ad_set_digital_line(self.handle, 0, 0, True)
+
+        with self.assertRaises(LibAD4Error):
+            ad_set_digital_line(INVALID_HANDLE, 0, 0, True)
+
+    def test_get_digital_line(self):
+        flag = ad_get_digital_line(self.handle, 0, 0)
+        self.assertIsInstance(flag, bool)
+
+        with self.assertRaises(LibAD4Error):
+            ad_get_digital_line(INVALID_HANDLE, 0, 0)
 
 
 if __name__ == '__main__':

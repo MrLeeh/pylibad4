@@ -665,11 +665,70 @@ def ad_digital_out(handle, channel, data):
         )
 
 
+def ad_set_digital_line(handle, channel, line, flag):
+    """
+    Helper function for setting a single line of the given channel
+    ``AD_CHA_TYPE_DIGITAL_IO | channel`` to the value of the given *flag*.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int line: line number
+    :param bool flag: set line value to True or False
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
+    """
+    ad_set_digital_line = libad4_dll.ad_set_digital_line
+    ad_set_digital_line.argtypes = [c_int32, c_int32, c_int32, c_uint32]
+    ad_set_digital_line.restype = c_int32
+
+    return_code = ad_set_digital_line(handle, channel, line, 1 if flag else 0)
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_set_digital_line('
+            '{handle}, {channel}, {line}, {flag}, returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, line=line, flag=flag,
+                return_code=return_code
+            ), return_code
+        )
+
+
 def ad_get_digital_line(handle, channel, line):
     """
-    Helper function for reading the channel ``AD_CHA_TYPE_DIGITAL_IO | channel``
-    and setting the *flag* of *line*.
+    Helper function for getting the value of a single line of the given digital
+    ``AD_CHA_TYPE_DIGITAL_IO | channel``.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int line: line number
+    :rtype: bool
+    :return: value of the line of the given digital input
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
     """
+    ad_get_digital_line = libad4_dll.ad_get_digital_line
+    ad_get_digital_line.argtypes = [c_int32, c_int32, c_int32]
+    ad_get_digital_line.restype = c_int32
+    flag = c_uint32()
+
+    return_code = ad_get_digital_line(handle, channel, line, byref(flag))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_get_digital_line('
+            '{handle}, {channel}, {line}, returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, line=line,
+                return_code=return_code
+            ), return_code
+        )
+
+    return bool(flag.value)
 
 
 if __name__ == '__main__':  # pragma: no cover
