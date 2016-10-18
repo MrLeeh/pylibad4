@@ -209,16 +209,16 @@ class LibAD4TestCase(TestCase):
 
     def test_digital_in(self):
         value = ad_digital_in(self.handle, 0)
-        self.assertIsInstance(value, bool)
+        self.assertIsInstance(value, int)
 
         with self.assertRaises(LibAD4Error):
             ad_digital_in(INVALID_HANDLE, 0)
 
     def test_digital_out(self):
-        ad_digital_out(self.handle, 0, True)
+        ad_digital_out(self.handle, 0, 0xf)
 
         with self.assertRaises(LibAD4Error):
-            ad_digital_out(INVALID_HANDLE, 0, True)
+            ad_digital_out(INVALID_HANDLE, 0, 0xf)
 
 
 if __name__ == '__main__':

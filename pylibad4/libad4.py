@@ -610,8 +610,8 @@ def ad_digital_in(handle, channel):
 
     :param int handle: device-handle
     :param int channel: channel number
-    :restype: bool
-    :return: state of digital input
+    :restype: int
+    :return: state of the digital input channel
 
     :raises LibAD4Error: if an error occured, error_code contains the error
                          number returned by libad4.dll
@@ -633,7 +633,7 @@ def ad_digital_in(handle, channel):
             ), return_code
         )
 
-    return bool(data.value)
+    return data.value
 
 
 def ad_digital_out(handle, channel, data):
@@ -643,7 +643,7 @@ def ad_digital_out(handle, channel, data):
 
     :param int handle: device-handle
     :param int channel: channel number
-    :param bool data: digital setpoint for output
+    :param int data: digital setpoint for the output channel
 
     :raises LibAD4Error: if an error occured, error_code contains the error
                          number returned by libad4.dll
@@ -663,6 +663,13 @@ def ad_digital_out(handle, channel, data):
                 return_code=return_code
             ), return_code
         )
+
+
+def ad_get_digital_line(handle, channel, line):
+    """
+    Helper function for reading the channel ``AD_CHA_TYPE_DIGITAL_IO | channel``
+    and setting the *flag* of *line*.
+    """
 
 
 if __name__ == '__main__':  # pragma: no cover
