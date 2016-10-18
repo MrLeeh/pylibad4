@@ -535,6 +535,74 @@ def ad_float_to_sample64(handle, channel, range_, value):
     return data.value
 
 
+def ad_analog_in(handle, channel, range_):
+    """
+    This is a helper function that calls ad_discrete_in() and calculates
+    the voltage value by calling ad_sample_to_float(). Only anlog inputs are
+    supported (AD_CHA_TYPE_ANALOG_IN | cha).
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
+    """
+    ad_analog_in = libad4_dll.ad_analog_in
+    ad_analog_in.argtypes = [c_int32, c_int32, c_int32]
+    ad_analog_in.restype = c_int32
+    float_value = c_float()
+
+    return_code = ad_analog_in(
+        handle, channel, range_, byref(float_value))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_analog_in('
+            '{handle}, {channel}, {range_}, returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                return_code=return_code
+            ), return_code
+        )
+
+    return float_value.value
+
+
+def ad_analog_out(handle, channel, range_, value):
+    """
+    This is a helper function that calculates the discrete value from
+    a given voltage value using the function ad_float_to_sample() and
+    calls ad_discrete_out() to write it to an output. Only analog outputs
+    are supported (AD_CHA_TYPE_ANALOG_OUT | cha).
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :param float value: voltage value
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
+    """
+    ad_analog_out = libad4_dll.ad_analog_out
+    ad_analog_out.argtypes = [c_int32, c_int32, c_int32, c_float]
+    ad_analog_out.restype = c_int32
+
+    return_code = ad_analog_out(handle, channel, range_, value)
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_analog_out('
+            '{handle}, {channel}, {range_}, returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                return_code=return_code
+            ), return_code
+        )
+
+
 if __name__ == '__main__':  # pragma: no cover
     from .types import AD_CHA_TYPE_ANALOG_IN
     channels = [
