@@ -539,7 +539,7 @@ def ad_analog_in(handle, channel, range_):
     """
     This is a helper function that calls ad_discrete_in() and calculates
     the voltage value by calling ad_sample_to_float(). Only anlog inputs are
-    supported (AD_CHA_TYPE_ANALOG_IN | cha).
+    supported (AD_CHA_TYPE_ANALOG_IN | channel).
 
     :param int handle: device-handle
     :param int channel: channel number
@@ -575,7 +575,7 @@ def ad_analog_out(handle, channel, range_, value):
     This is a helper function that calculates the discrete value from
     a given voltage value using the function ad_float_to_sample() and
     calls ad_discrete_out() to write it to an output. Only analog outputs
-    are supported (AD_CHA_TYPE_ANALOG_OUT | cha).
+    are supported (AD_CHA_TYPE_ANALOG_OUT | channel).
 
     :param int handle: device-handle
     :param int channel: channel number
@@ -598,6 +598,68 @@ def ad_analog_out(handle, channel, range_, value):
             '{handle}, {channel}, {range_}, returncode: {return_code}'
             .format(
                 handle=handle, channel=channel, range_=range_,
+                return_code=return_code
+            ), return_code
+        )
+
+
+def ad_digital_in(handle, channel):
+    """
+    This helper function calls ad_discrete_in() for the channel number
+    ``AD_CHA_TYPE_DIGITAL_IO | channel``.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :restype: bool
+    :return: state of digital input
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
+    """
+    ad_digital_in = libad4_dll.ad_digital_in
+    ad_digital_in.argtypes = [c_int32, c_int32]
+    ad_digital_in.restype = c_int32
+    data = c_uint32()
+
+    return_code = ad_digital_in(handle, channel, byref(data))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_digital_in('
+            '{handle}, {channel}, returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, return_code=return_code
+            ), return_code
+        )
+
+    return bool(data.value)
+
+
+def ad_digital_out(handle, channel, data):
+    """
+    This helper function calls ad_discrete_out() for the channel number
+    ``AD_CHA_TYPE_DIGITAL_IO | channel``
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param bool data: digital setpoint for output
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+    """
+    ad_digital_out = libad4_dll.ad_digital_out
+    ad_digital_out.argtypes = [c_int32, c_int32, c_uint32]
+    ad_digital_out.restype = c_int32
+
+    return_code = ad_digital_out(handle, channel, data)
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_digital_out('
+            '{handle}, {channel}, {data}, returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, data=data,
                 return_code=return_code
             ), return_code
         )

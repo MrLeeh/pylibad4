@@ -14,7 +14,8 @@ from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_get_range_info, ad_discrete_in, ad_discrete_inv, ad_sample_to_float, \
     ad_discrete_in64, ad_discrete_out, ad_discrete_out64, \
     ad_discrete_outv, ad_sample_to_float64, ad_float_to_sample, \
-    ad_float_to_sample64, ad_analog_in, ad_analog_out, LibAD4Error
+    ad_float_to_sample64, ad_analog_in, ad_analog_out, \
+    ad_digital_in, ad_digital_out, LibAD4Error
 from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
     AD_CHA_TYPE_ANALOG_OUT
 
@@ -183,7 +184,7 @@ class LibAD4TestCase(TestCase):
             data = ad_discrete_outv(self.handle, channels, ranges, data)
 
     def test_analog_in(self):
-        channel = AD_CHA_TYPE_ANALOG_IN | 0x0001
+        channel = 1
         range_ = 0
 
         # check ad_analog_in
@@ -195,7 +196,7 @@ class LibAD4TestCase(TestCase):
             ad_analog_in(INVALID_HANDLE, channel, range_)
 
     def test_analog_out(self):
-        channel = AD_CHA_TYPE_ANALOG_OUT | 0x0001
+        channel = 1
         range_ = 0
         value = 5.0
 
@@ -205,6 +206,19 @@ class LibAD4TestCase(TestCase):
         # check ad_analog_out error
         with self.assertRaises(LibAD4Error):
             ad_analog_out(INVALID_HANDLE, channel, range_, value)
+
+    def test_digital_in(self):
+        value = ad_digital_in(self.handle, 0)
+        self.assertIsInstance(value, bool)
+
+        with self.assertRaises(LibAD4Error):
+            ad_digital_in(INVALID_HANDLE, 0)
+
+    def test_digital_out(self):
+        ad_digital_out(self.handle, 0, True)
+
+        with self.assertRaises(LibAD4Error):
+            ad_digital_out(INVALID_HANDLE, 0, True)
 
 
 if __name__ == '__main__':
