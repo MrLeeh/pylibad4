@@ -40,7 +40,8 @@ def ad_open(name):
     :param str name: name of the device
     :return: device-handle for further function calls
     :rtype: int
-    :raises IOError: if the connection couldn't be established
+
+    :raises LibAD4Error: if the connection couldn't be established
 
     Possible names for BMCM measurement devices are listed below:
 
@@ -70,7 +71,7 @@ def ad_open(name):
     handle = ad_open(bytes(name, encoding))
 
     if handle == -1:
-        raise IOError('Could not connect to device {}'.format(name))
+        raise LibAD4Error('Could not connect to device {}'.format(name), -1)
 
     return handle
 
@@ -80,18 +81,21 @@ def ad_close(handle):
     Close the connection to a measurement system.
 
     :param int handle: device-handle
-    :raises IOError: if an error occured during disconnecting device,
-                     contains the error number
+
+    :raises LibAD4Error: if an error occured during disconnecting device,
+                         contains the error number
     """
     ad_close = libad4_dll.ad_close
     ad_close.argtypes = [c_int32]
     ad_close.restype = c_int32
 
-    res = ad_close(handle)
+    return_code = ad_close(handle)
 
-    if res:
-        raise IOError(
-            'Error while disconnecting device (error number {})'.format(res))
+    if return_code:
+        raise LibAD4Error(
+            'Error while disconnecting device (error number {})'
+            .format(return_code), return_code
+        )
 
 
 def ad_get_range_count(handle, channel):
@@ -102,8 +106,9 @@ def ad_get_range_count(handle, channel):
     :param int channel: channel number
     :rtype: int
     :return: count of measurement ranges
-    :raises IOError: if an error occured, error_code contains the error number
-                     return by libad4.dll
+
+    :raises LibAD4Error: if an error occured, error_code contains the error number
+                         return by libad4.dll
 
     """
     ad_get_range_count = libad4_dll.ad_get_range_count
@@ -132,8 +137,9 @@ def ad_get_range_info(handle, channel, range_):
     :param int channel: channel number
     :rtype: SADRangeInfo
     :return: range information object
-    :raises IOError: if an error occured, error_code contains the error number
-                     return by libad4.dll
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number return by libad4.dll
 
     """
     ad_get_range_info = libad4_dll.ad_get_range_info
@@ -165,8 +171,9 @@ def ad_discrete_in(handle, channel, range_):
     :param int channel: channel number
     :param int range_: range number
     :rtype: int
-    :raises IOError: if an error occured, error_code contains the error number
-                     return by libad4.dll
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
 
     """
     ad_discrete_in = libad4_dll.ad_discrete_in
@@ -196,8 +203,9 @@ def ad_discrete_in64(handle, channel, range_):
     :param int channel: channel number
     :param int range_: range number
     :rtype: int
-    :raises IOError: if an error occured, error_code contains the error number
-                     return by libad4.dll
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
 
     """
     ad_discrete_in64 = libad4_dll.ad_discrete_in64
@@ -221,8 +229,8 @@ def ad_discrete_in64(handle, channel, range_):
 
 def ad_discrete_inv(handle, channel_list, range_list):
     """
-    :raises IOError: if an error occured, error_code contains the error number
-                     return by libad4.dll
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
 
     """
     ad_discrete_inv = libad4_dll.ad_discrete_inv
@@ -267,8 +275,9 @@ def ad_discrete_out(handle, channel, range_, data):
     :param int channel: channel number
     :param int range_: range number
     :param int data: data value
-    :raises IOError: if an error occured, error_code contains the error number
-                     return by libad4.dll
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
 
     For analog outputs 0x00000000 stands for the lowest output voltage (e.g. 0V)
     and 0x10000000 stands for the highest output voltage (e.g. 10V). As it is
@@ -305,7 +314,8 @@ def ad_discrete_out64(handle, channel, range_, data):
     :param int channel: channel number
     :param int range_: range number
     :param int data: data value
-    :raises IOError: if an error occured, error_code contains the error number
+
+    :raises LibAD4Error: if an error occured, error_code contains the error number
                      return by libad4.dll
 
     For analog outputs 0x0000000000000000 stands for the lowest output voltage
@@ -350,9 +360,8 @@ def ad_discrete_outv(handle, channel_list, range_list, data_list):
     :param [int] range_list: list of the used range numbers
     :param [int] data_list: list of data values to write to the outputs
 
-    :raises IOError: if an error occured, error_code contains the error number
-                     return by libad4.dll
-
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
 
     """
     ad_discrete_outv = libad4_dll.ad_discrete_outv
@@ -398,6 +407,9 @@ def ad_sample_to_float(handle, channel, range_, data):
     :param int data: measurement data
     :rtype: float
 
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
     """
     ad_sample_to_float = libad4_dll.ad_sample_to_float
     ad_sample_to_float.argtypes = [c_int32, c_int32, c_int32, c_uint32]
@@ -430,6 +442,9 @@ def ad_sample_to_float64(handle, channel, range_, data):
     :param int data: measurement data
     :rtype: float
 
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
     """
     ad_sample_to_float64 = libad4_dll.ad_sample_to_float64
     ad_sample_to_float64.argtypes = [c_int32, c_int32, c_uint64, c_uint64]
@@ -450,6 +465,74 @@ def ad_sample_to_float64(handle, channel, range_, data):
         )
 
     return double_data.value
+
+
+def ad_float_to_sample(handle, channel, range_, value):
+    """
+    Convert a voltage value to the corresponding measurement data.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :param int value: voltage value
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
+    """
+    ad_float_to_sample = libad4_dll.ad_float_to_sample
+    ad_float_to_sample.argtypes = [c_int32, c_int32, c_int32, c_float]
+    ad_float_to_sample.restype = c_int32
+    data = c_uint32()
+
+    return_code = ad_float_to_sample(
+        handle, channel, range_, value, byref(data))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_float_to_sample('
+            '{handle}, {channel}, {range_}, {value}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                value=value, return_code=return_code
+            ), return_code
+        )
+
+    return data.value
+
+
+def ad_float_to_sample64(handle, channel, range_, value):
+    """
+    Convert a voltage value to the corresponding measurement data.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :param int value: voltage value
+
+    :raises LibAD4Error: if an error occured, error_code contains the error
+                         number returned by libad4.dll
+
+    """
+    ad_float_to_sample64 = libad4_dll.ad_float_to_sample64
+    ad_float_to_sample64.argtypes = [c_int32, c_int32, c_uint64, c_double]
+    ad_float_to_sample64.restype = c_int32
+    data = c_uint64()
+
+    return_code = ad_float_to_sample64(
+        handle, channel, range_, value, byref(data))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_float_to_sample64('
+            '{handle}, {channel}, {range_}, {value}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                value=value, return_code=return_code
+            ), return_code
+        )
+
+    return data.value
 
 
 if __name__ == '__main__':  # pragma: no cover

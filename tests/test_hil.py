@@ -13,7 +13,8 @@ from unittest import TestCase
 from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_get_range_info, ad_discrete_in, ad_discrete_inv, ad_sample_to_float, \
     ad_discrete_in64, ad_discrete_out, ad_discrete_out64, \
-    ad_discrete_outv, ad_sample_to_float64, LibAD4Error
+    ad_discrete_outv, ad_sample_to_float64, ad_float_to_sample, \
+    ad_float_to_sample64, LibAD4Error
 from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
     AD_CHA_TYPE_ANALOG_OUT
 
@@ -31,10 +32,10 @@ class LibAD4TestCase(TestCase):
         ad_close(self.handle)
 
     def test_connection_error(self):
-        with self.assertRaises(IOError):
+        with self.assertRaises(LibAD4Error):
             ad_open('')
 
-        with self.assertRaises(IOError):
+        with self.assertRaises(LibAD4Error):
             ad_close(INVALID_HANDLE)
 
     def test_range_info(self):
@@ -123,24 +124,42 @@ class LibAD4TestCase(TestCase):
     def test_discrete_out(self):
         channel = AD_CHA_TYPE_ANALOG_OUT | 0x0001
         range_ = 0
-        data = 0xffffffff
+        value = 5.0
 
+        # check ad_float_to_sample
+        data = ad_float_to_sample(self.handle, channel, range_, value)
+        self.assertIsInstance(data, int)
+
+        # check ad_discrete_out
         ad_discrete_out(self.handle, channel, range_, data)
 
         # check for error
         with self.assertRaises(LibAD4Error):
             ad_discrete_out(INVALID_HANDLE, channel, range_, data)
 
+        # check ad_float_to_sample for error
+        with self.assertRaises(LibAD4Error):
+            ad_float_to_sample(INVALID_HANDLE, channel, range_, value)
+
     def test_discrete_out64(self):
         channel = AD_CHA_TYPE_ANALOG_OUT | 0x0001
         range_ = 0
-        data = 0xffffffffffffffff
+        value = 5.0
 
+        # check ad_float_to_sample64
+        data = ad_float_to_sample64(self.handle, channel, range_, value)
+        self.assertIsInstance(data, int)
+
+        # check ad_discrete_out64
         ad_discrete_out64(self.handle, channel, range_, data)
 
         # check for error
         with self.assertRaises(LibAD4Error):
             ad_discrete_out64(INVALID_HANDLE, channel, range_, data)
+
+        # check ad_float_to_sample64 for error
+        with self.assertRaises(LibAD4Error):
+            ad_float_to_sample64(INVALID_HANDLE, channel, range_, value)
 
     def test_discrete_outv(self):
         channels = [
