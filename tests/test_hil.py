@@ -13,7 +13,7 @@ from unittest import TestCase
 from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_get_range_info, ad_discrete_in, ad_discrete_inv, ad_sample_to_float, \
     ad_discrete_in64, ad_discrete_out, ad_discrete_out64, \
-    ad_discrete_outv, LibAD4Error
+    ad_discrete_outv, ad_sample_to_float64, LibAD4Error
 from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
     AD_CHA_TYPE_ANALOG_OUT
 
@@ -85,9 +85,17 @@ class LibAD4TestCase(TestCase):
         data = ad_discrete_in64(self.handle, channel, 0)
         self.assertIsInstance(data, int)
 
+        # check sample to float64
+        value = ad_sample_to_float64(self.handle, channel, 0, data)
+        self.assertIsInstance(value, float)
+
         # check for error
         with self.assertRaises(LibAD4Error):
             ad_discrete_in64(INVALID_HANDLE, channel, 0)
+
+        # check sample to float64 error
+        with self.assertRaises(LibAD4Error):
+            ad_sample_to_float64(INVALID_HANDLE, channel, 0, data)
 
     def test_discrete_inv(self):
         channels = [

@@ -8,7 +8,7 @@
 import os
 import sys
 from ctypes import CDLL, c_char_p, c_int32, c_uint32, byref, c_float, \
-    c_uint64
+    c_uint64, c_double
 from .types import SADRangeInfo
 
 LIB_NAME = 'libad4.dll'
@@ -395,6 +395,7 @@ def ad_sample_to_float(handle, channel, range_, data):
     :param int handle: device-handle
     :param int channel: channel number
     :param int range_: range number
+    :param int data: measurement data
     :rtype: float
 
     """
@@ -417,6 +418,38 @@ def ad_sample_to_float(handle, channel, range_, data):
         )
 
     return float_data.value
+
+
+def ad_sample_to_float64(handle, channel, range_, data):
+    """
+    Convert a measurement value in the corresponding voltage value.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int range_: range number
+    :param int data: measurement data
+    :rtype: float
+
+    """
+    ad_sample_to_float64 = libad4_dll.ad_sample_to_float64
+    ad_sample_to_float64.argtypes = [c_int32, c_int32, c_uint64, c_uint64]
+    ad_sample_to_float64.restype = c_int32
+    double_data = c_double()
+
+    return_code = ad_sample_to_float64(
+        handle, channel, range_, data, byref(double_data))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_sample_to_float64('
+            '{handle}, {channel}, {range_}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, range_=range_,
+                return_code=return_code
+            ), return_code
+        )
+
+    return double_data.value
 
 
 if __name__ == '__main__':  # pragma: no cover
