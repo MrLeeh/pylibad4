@@ -9,7 +9,7 @@ measurement device.
 
 """
 import unittest
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_get_range_info, ad_discrete_in, ad_discrete_inv, ad_sample_to_float, \
     ad_discrete_in64, ad_discrete_out, ad_discrete_out64, \
@@ -26,6 +26,19 @@ TEST_DEVICE_NAME = 'memadfpusb'
 INVALID_HANDLE = -1
 
 
+def device_connected():
+    try:
+        handle = ad_open(TEST_DEVICE_NAME)
+        ad_close(handle)
+        return True
+    except:
+        print()
+        return False
+
+
+@skipUnless(device_connected(),
+            'Skipping hardware test. Device {} not connected.'
+            .format(TEST_DEVICE_NAME))
 class LibAD4TestCase(TestCase):
 
     def setUp(self):
