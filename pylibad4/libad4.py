@@ -813,7 +813,7 @@ def ad_get_version():
 
     res = ad_get_version()
 
-    return res.value
+    return res
 
 
 def ad_get_drv_version(handle):
@@ -830,7 +830,7 @@ def ad_get_drv_version(handle):
     ad_get_drv_version.restype = c_int32
     vers = c_uint32()
 
-    return_code = ad_get_drv_version(handle, vers)
+    return_code = ad_get_drv_version(handle, byref(vers))
 
     if return_code:
         raise LibAD4Error(
@@ -840,6 +840,8 @@ def ad_get_drv_version(handle):
                 handle=handle, return_code=return_code
             ), return_code
         )
+
+    return vers.value
 
 
 if __name__ == '__main__':  # pragma: no cover

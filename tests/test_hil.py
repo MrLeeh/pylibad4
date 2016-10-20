@@ -16,7 +16,8 @@ from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_discrete_outv, ad_sample_to_float64, ad_float_to_sample, \
     ad_float_to_sample64, ad_analog_in, ad_analog_out, \
     ad_digital_in, ad_digital_out, ad_set_digital_line, ad_get_digital_line, \
-    ad_get_line_direction, ad_set_line_direction, LibAD4Error
+    ad_get_line_direction, ad_set_line_direction, ad_get_version, \
+    ad_get_drv_version, LibAD4Error
 from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
     AD_CHA_TYPE_ANALOG_OUT, AD_CHA_TYPE_DIGITAL_IO
 
@@ -257,6 +258,16 @@ class LibAD4TestCase(TestCase):
         # check error for invalid getter
         with self.assertRaises(LibAD4Error):
             ad_get_line_direction(INVALID_HANDLE, channel)
+
+    def test_ad_get_version(self):
+        self.assertIsInstance(ad_get_version(), int)
+
+    def test_get_drv_version(self):
+        drv_version = ad_get_drv_version(self.handle)
+        self.assertIsInstance(drv_version, int)
+
+        with self.assertRaises(LibAD4Error):
+            ad_get_drv_version(INVALID_HANDLE)
 
 
 if __name__ == '__main__':
