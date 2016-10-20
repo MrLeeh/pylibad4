@@ -8,8 +8,8 @@
 import os
 import sys
 from ctypes import CDLL, c_char_p, c_int32, c_uint32, byref, c_float, \
-    c_uint64, c_double
-from .types import SADRangeInfo
+    c_uint64, c_double, c_int, POINTER, sizeof
+from .types import SADRangeInfo, SADProductInfo
 
 LIB_NAME = 'libad4.dll'
 
@@ -844,15 +844,52 @@ def ad_get_drv_version(handle):
     return vers.value
 
 
-if __name__ == '__main__':  # pragma: no cover
-    from .types import AD_CHA_TYPE_ANALOG_IN
-    channels = [
-        AD_CHA_TYPE_ANALOG_IN | 0x0001,
-        AD_CHA_TYPE_ANALOG_IN | 0x0002
-    ]
-    ranges = [0, 0]
+def ad_get_product_info(handle, id_=0):
+    """
+    Return serial number, firmware version, product name of the
+    opened measurement system.
 
+    :param int handle: device-handle
+    :param int id_: measurement module id
+
+    .. note::
+
+        With :attr:`id_=0` you get the information of the opened
+        measurement system. With :attr:`id_=1` or :attr:`id_=2`
+        you can access product information of a measumrent module
+        in the measurement system (e.g. MADDA16 with PCIe-BASE)
+
+    :rtype: SADProductInfo
+
+    raises LibAD4Error: if an error occured, error_code contains the error
+                        number returned by libad4.dll
+
+    """
+    ad_get_product_info = libad4_dll.ad_get_product_info
+    ad_get_product_info.argtypes = [c_int32, c_int, POINTER(SADProductInfo),
+                                    c_int32]
+    ad_get_product_info.restype = c_int32
+    product_info = SADProductInfo()
+
+    return_code = ad_get_product_info(handle, id_, product_info,
+                                      sizeof(product_info))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_get_product_info('
+            '{handle}, {id_}), returncode: {return_code}'
+            .format(
+                handle=handle, id_=id_, return_code=return_code
+            ), return_code
+        )
+
+    return product_info
+
+
+if __name__ == '__main__':  # pragma: no cover
     handle = ad_open('memadfpusb')
-    data = ad_discrete_inv(handle, channels, ranges)
-    print(data)
+    data = ad_get_product_info(handle)
+    print(data.serial)
+    print(data.fw_version)
+    print(data.model)
     ad_close(handle)

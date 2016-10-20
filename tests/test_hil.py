@@ -17,9 +17,9 @@ from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_float_to_sample64, ad_analog_in, ad_analog_out, \
     ad_digital_in, ad_digital_out, ad_set_digital_line, ad_get_digital_line, \
     ad_get_line_direction, ad_set_line_direction, ad_get_version, \
-    ad_get_drv_version, LibAD4Error
+    ad_get_drv_version, ad_get_product_info, LibAD4Error
 from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
-    AD_CHA_TYPE_ANALOG_OUT, AD_CHA_TYPE_DIGITAL_IO
+    AD_CHA_TYPE_ANALOG_OUT, AD_CHA_TYPE_DIGITAL_IO, SADProductInfo
 
 
 TEST_DEVICE_NAME = 'memadfpusb'
@@ -268,6 +268,13 @@ class LibAD4TestCase(TestCase):
 
         with self.assertRaises(LibAD4Error):
             ad_get_drv_version(INVALID_HANDLE)
+
+    def test_get_product_info(self):
+        product_info = ad_get_product_info(self.handle)
+        self.assertIsInstance(product_info, SADProductInfo)
+
+        with self.assertRaises(LibAD4Error):
+            ad_get_product_info(INVALID_HANDLE)
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@
 
 """
 
-from ctypes import Structure, c_double, c_char, c_int
+from ctypes import Structure, c_double, c_char, c_int, c_uint32, c_uint8
 
 
 """
@@ -37,4 +37,14 @@ class SADRangeInfo(Structure):
         ('res', c_double),
         ('bps', c_int),
         ('unit', c_char * 24)
+    ]
+
+
+class SADProductInfo(Structure):
+
+    _fields_ = [
+        ('serial', c_uint32),
+        ('fw_version', c_uint32),
+        ('model', c_char * 32),
+        ('res', c_uint8 * 256)
     ]
