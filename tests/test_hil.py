@@ -16,9 +16,9 @@ from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
     ad_discrete_outv, ad_sample_to_float64, ad_float_to_sample, \
     ad_float_to_sample64, ad_analog_in, ad_analog_out, \
     ad_digital_in, ad_digital_out, ad_set_digital_line, ad_get_digital_line, \
-    LibAD4Error
+    ad_get_line_direction, ad_set_line_direction, LibAD4Error
 from pylibad4.types import AD_CHA_TYPE_ANALOG_IN, AD_RETURN_CODE_6, \
-    AD_CHA_TYPE_ANALOG_OUT
+    AD_CHA_TYPE_ANALOG_OUT, AD_CHA_TYPE_DIGITAL_IO
 
 
 TEST_DEVICE_NAME = 'memadfpusb'
@@ -233,6 +233,30 @@ class LibAD4TestCase(TestCase):
 
         with self.assertRaises(LibAD4Error):
             ad_get_digital_line(INVALID_HANDLE, 0, 0)
+
+    def test_set_line_direction(self):
+        mask = 0xFFFF
+        channel = AD_CHA_TYPE_DIGITAL_IO | 0
+
+        # set line direction: all in
+        ad_set_line_direction(self.handle, channel, mask)
+
+        # check error for invalid setter
+        with self.assertRaises(LibAD4Error):
+            ad_set_line_direction(INVALID_HANDLE, channel, mask)
+
+    def test_get_line_direction(self):
+        channel = AD_CHA_TYPE_DIGITAL_IO | 0
+
+        # get line direction
+        mask = ad_get_line_direction(self.handle, channel)
+
+        # check if both masks are equal
+        self.assertIsInstance(mask, int)
+
+        # check error for invalid getter
+        with self.assertRaises(LibAD4Error):
+            ad_get_line_direction(INVALID_HANDLE, channel)
 
 
 if __name__ == '__main__':

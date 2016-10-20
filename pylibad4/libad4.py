@@ -560,7 +560,7 @@ def ad_analog_in(handle, channel, range_):
     if return_code:
         raise LibAD4Error(
             'Error calling function ad_analog_in('
-            '{handle}, {channel}, {range_}, returncode: {return_code}'
+            '{handle}, {channel}, {range_}), returncode: {return_code}'
             .format(
                 handle=handle, channel=channel, range_=range_,
                 return_code=return_code
@@ -595,7 +595,7 @@ def ad_analog_out(handle, channel, range_, value):
     if return_code:
         raise LibAD4Error(
             'Error calling function ad_analog_out('
-            '{handle}, {channel}, {range_}, returncode: {return_code}'
+            '{handle}, {channel}, {range_}), returncode: {return_code}'
             .format(
                 handle=handle, channel=channel, range_=range_,
                 return_code=return_code
@@ -627,7 +627,7 @@ def ad_digital_in(handle, channel):
     if return_code:
         raise LibAD4Error(
             'Error calling function ad_digital_in('
-            '{handle}, {channel}, returncode: {return_code}'
+            '{handle}, {channel}), returncode: {return_code}'
             .format(
                 handle=handle, channel=channel, return_code=return_code
             ), return_code
@@ -657,7 +657,7 @@ def ad_digital_out(handle, channel, data):
     if return_code:
         raise LibAD4Error(
             'Error calling function ad_digital_out('
-            '{handle}, {channel}, {data}, returncode: {return_code}'
+            '{handle}, {channel}, {data}), returncode: {return_code}'
             .format(
                 handle=handle, channel=channel, data=data,
                 return_code=return_code
@@ -688,7 +688,7 @@ def ad_set_digital_line(handle, channel, line, flag):
     if return_code:
         raise LibAD4Error(
             'Error calling function ad_set_digital_line('
-            '{handle}, {channel}, {line}, {flag}, returncode: {return_code}'
+            '{handle}, {channel}, {line}, {flag}), returncode: {return_code}'
             .format(
                 handle=handle, channel=channel, line=line, flag=flag,
                 return_code=return_code
@@ -721,7 +721,7 @@ def ad_get_digital_line(handle, channel, line):
     if return_code:
         raise LibAD4Error(
             'Error calling function ad_get_digital_line('
-            '{handle}, {channel}, {line}, returncode: {return_code}'
+            '{handle}, {channel}, {line}), returncode: {return_code}'
             .format(
                 handle=handle, channel=channel, line=line,
                 return_code=return_code
@@ -729,6 +729,117 @@ def ad_get_digital_line(handle, channel, line):
         )
 
     return bool(flag.value)
+
+
+def ad_get_line_direction(handle, channel):
+    """
+    Return a bitmask describing the direction of the digital lines. Every Bit
+    with the value HIGH defines an input, every Bit with the value LOW defines
+    an output. Bit 0 defines the direction of the first line of the digital
+    channel.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :restype: int
+    :return: bitmask describing the output direction of the digital channel
+
+    raises LibAD4Error: if an error occured, error_code contains the error
+                        number returned by libad4.dll
+
+    """
+    ad_get_line_direction = libad4_dll.ad_get_line_direction
+    ad_get_line_direction.argtypes = [c_int32, c_int32]
+    ad_get_line_direction.restype = c_int32
+    mask = c_uint32()
+
+    return_code = ad_get_line_direction(handle, channel, byref(mask))
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_get_line_direction('
+            '{handle}, {channel}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, return_code=return_code
+            ), return_code
+        )
+
+    return mask.value
+
+
+def ad_set_line_direction(handle, channel, mask):
+    """
+    Set the input/output direction of all lines of the data channel `channel` by
+    using the bitmask :attr:`mask`. Every HIGH bit defines an input, every LOW
+    bit defines an output. Bit 0 defines the direction of the first line.
+
+    :param int handle: device-handle
+    :param int channel: channel number
+    :param int mask: bitmask describing the output direction of the digital
+                     channel
+
+    raises LibAD4Error: if an error occured, error_code contains the error
+                        number returned by libad4.dll
+
+    :Example:
+
+    `0xFFFF` sets all digital lines to inputs, `0x0000` sets all lines to
+    output.
+
+    """
+    ad_set_line_direction = libad4_dll.ad_set_line_direction
+    ad_set_line_direction.argtypes = [c_int32, c_int32, c_int32]
+    ad_set_line_direction.restype = c_int32
+
+    return_code = ad_set_line_direction(handle, channel, mask)
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_set_line_direction('
+            '{handle}, {channel}, {mask}), returncode: {return_code}'
+            .format(
+                handle=handle, channel=channel, mask=mask,
+                return_code=return_code
+            ), return_code
+        )
+
+
+def ad_get_version():
+    """
+    Return version of *LIBAD4.dll*.
+
+    """
+    ad_get_version = libad4_dll.ad_get_version
+    ad_get_version.restype = c_uint32
+
+    res = ad_get_version()
+
+    return res.value
+
+
+def ad_get_drv_version(handle):
+    """
+    Return the version of the measurement driver used by *LIBAD4*.
+    :param int handle: device-handle
+
+    raises LibAD4Error: if an error occured, error_code contains the error
+                        number returned by libad4.dll
+
+    """
+    ad_get_drv_version = libad4_dll.ad_get_drv_version
+    ad_get_drv_version.argtypes = [c_int32]
+    ad_get_drv_version.restype = c_int32
+    vers = c_uint32()
+
+    return_code = ad_get_drv_version(handle, vers)
+
+    if return_code:
+        raise LibAD4Error(
+            'Error calling function ad_get_drv_version('
+            '{handle}), returncode: {return_code}'
+            .format(
+                handle=handle, return_code=return_code
+            ), return_code
+        )
 
 
 if __name__ == '__main__':  # pragma: no cover
