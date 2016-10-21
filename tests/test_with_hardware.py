@@ -32,7 +32,7 @@ def device_connected():
         handle = ad_open(TEST_DEVICE_NAME)
         ad_close(handle)
         return True
-    except:
+    except LibAD4Error:
         return False
 
 
