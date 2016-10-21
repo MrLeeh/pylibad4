@@ -32,7 +32,6 @@ def device_connected():
         ad_close(handle)
         return True
     except:
-        print()
         return False
 
 

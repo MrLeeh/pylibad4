@@ -20,6 +20,7 @@ basedir = os.path.dirname(os.path.abspath(__file__))
 local_lib = os.path.join(basedir, LIB_NAME)
 
 # Load libad4.dll
+# prefer local dll before system wide dll
 if os.path.isfile(local_lib):
     libad4_dll = CDLL(local_lib)
 else:  # pragma: no cover
