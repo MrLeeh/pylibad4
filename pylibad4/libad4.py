@@ -7,6 +7,7 @@
 """
 import os
 import sys
+from builtins import bytes
 from ctypes import CDLL, c_char_p, c_int32, c_uint32, byref, c_float, \
     c_uint64, c_double, c_int, POINTER, sizeof
 from .types import SADRangeInfo, SADProductInfo

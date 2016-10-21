@@ -41,7 +41,7 @@ setup(
     author='Stefan Lehmann',
     author_email='stefan.st.lehmann@gmail.com',
     packages=['pylibad4'],
-    requires=[],
+    install_requires=['future'],
     provides=['pylibad4'],
     url='https://github.com/MrLeeh/pylibad4',
     classifiers=[
@@ -53,8 +53,8 @@ setup(
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 2',
         'Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator'
     ],
     cmdclass=cmdclass

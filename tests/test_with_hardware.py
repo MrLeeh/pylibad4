@@ -8,6 +8,7 @@ This is a hardware-in-the-loop test and should only be run with a connected
 measurement device.
 
 """
+from builtins import int
 import unittest
 from unittest import TestCase, skipUnless
 from pylibad4.libad4 import ad_open, ad_close, ad_get_range_count, \
